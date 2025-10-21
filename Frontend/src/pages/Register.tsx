@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { FormInput } from '@/components/auth/FormInput';
 import { Briefcase, Mail } from 'lucide-react';
 import {toast} from "sonner"
+import axios from "axios"
+const backendUrl = import.meta.env.VITE_BACKEND_URL
 
 const Register = () => {
   const { role = 'employee' } = useParams<{ role: 'employee' | 'employer' }>();
@@ -60,15 +62,34 @@ const Register = () => {
     
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success("Account created!",{
-        description: `Welcome to Career Crafter, ${formData.name}!`,
-      });
-      // Navigate to login or dashboard
+    try {
+      const response = await axios.post(`${backendUrl}/api/auth/signup`,{
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: role
+      }, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+
+      toast.success("Account Created!", {
+        description: `Welcome to Career Crafter, ${formData.name}`
+      })
+      
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("role", response.data.role);
+
       navigate(`/login/${role}`);
-    }, 1000);
+    } catch (error) {
+      const errMsg = error.response?.data?.message || "Failed to create account. Please try again later."
+      toast.error("Signup failed", {
+        description: errMsg
+      })
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGoogleSignup = () => {
