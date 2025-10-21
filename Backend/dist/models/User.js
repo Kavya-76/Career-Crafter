@@ -5,6 +5,10 @@ const userSchema = new Schema({
     password: { type: String },
     role: { type: String, default: "employee" },
     googleId: { type: String },
+    isVerified: {
+        type: Boolean,
+        default: false
+    }
 }, { timestamps: true });
 const User = mongoose.model("User", userSchema);
 export default User;

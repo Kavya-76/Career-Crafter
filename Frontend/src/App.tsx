@@ -14,6 +14,7 @@ import ForgotPassword from "@/pages/ForgotPassword";
 import NotFound from "@/pages/NotFound";
 import EmployeeDashboard from "./components/employee/Dashboard";
 import EmployerDashboard from "./components/employer/Dashboard";
+import VerifyEmail from "@/pages/VerifyEmail";
 
 const queryClient = new QueryClient();
 
@@ -28,7 +29,7 @@ interface PublicRouteProps {
 }
 
 const PublicRoute = ({ children }: PublicRouteProps) => {
-  const {role, token} = useAuth();
+  const {role, token, user} = useAuth();
 
   if (token) {
     // Redirect based on role if already logged in
@@ -41,7 +42,7 @@ const PublicRoute = ({ children }: PublicRouteProps) => {
 
 
 const ProtectedRoute = ({ children, allowedRole }: ProtectedRouteProps) => {
-  const {role, token} = useAuth();
+  const {role, token, user} = useAuth();
 
   if(!token) return <Navigate to="/choose-role" replace />;
   if(allowedRole && role!==allowedRole)
@@ -65,6 +66,7 @@ const App = () => {
                 <Route path="/login/:role" element={<PublicRoute><Login /></PublicRoute>} />
                 <Route path="/register/:role" element={<PublicRoute><Register /></PublicRoute>} />
                 <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+                <Route path="/verify-email" element={<PublicRoute><VerifyEmail /></PublicRoute>} />
 
                 {/* Protected Routes */}
                 <Route

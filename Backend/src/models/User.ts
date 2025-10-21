@@ -6,6 +6,7 @@ export interface IUser extends Document {
   password?: string;
   role: "employee";
   googleId?: string;
+  isVerified: Boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -17,6 +18,10 @@ const userSchema = new Schema<IUser>(
     password: { type: String },
     role: { type: String, default: "employee" },
     googleId: { type: String },
+    isVerified: {
+      type: Boolean,
+      default: false
+    }
   },
   { timestamps: true }
 );

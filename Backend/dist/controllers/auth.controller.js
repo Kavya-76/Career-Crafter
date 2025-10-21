@@ -11,6 +11,8 @@ import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/generateToken.js";
 import User from "../models/User.js";
 import Company from "../models/Company.js";
+import jwt from "jsonwebtoken";
+import { sendVerificationEmail } from "../utils/sendVerificationEmail.js";
 export const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { name, email, password, role } = req.body;
@@ -30,12 +32,9 @@ export const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         const newUser = role === "employee"
             ? yield User.create({ name, email, password: hashedPassword })
             : yield Company.create({ name, email, password: hashedPassword });
-        const token = generateToken(newUser._id.toString(), role);
+        yield sendVerificationEmail(newUser);
         return res.status(201).json({
             message: "Signup successful",
-            token,
-            role,
-            user: { id: newUser._id, name: newUser.name, email: newUser.email },
         });
     }
     catch (error) {
@@ -60,6 +59,11 @@ export const login = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         if (!isMatch) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
+        // Check if user is verified
+        if (!existing.isVerified) {
+            yield sendVerificationEmail(existing); // resend verification email
+            return res.status(403).json({ message: "Email not verified. Verification email sent." });
+        }
         const token = generateToken(existing._id.toString(), role);
         return res.status(200).json({
             message: "Login successful",
@@ -71,5 +75,37 @@ export const login = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     catch (error) {
         console.error("Login Error:", error);
         return res.status(500).json({ message: "Server error" });
+    }
+});
+export const verifyEmail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const token = req.query.token;
+    console.log("Verifying the email...");
+    // Ensure token exists and is a string
+    if (!token || typeof token !== "string") {
+        return res.status(400).json({ message: "Token is required" });
+    }
+    try {
+        // Decode the JWT token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        // Determine which model to search
+        console.log(decoded.role);
+        let user;
+        if (decoded.role === "employee") {
+            user = yield User.findById(decoded.userId);
+        }
+        else if (decoded.role === "employer") {
+            user = yield Company.findById(decoded.userId);
+        }
+        if (!user) {
+            return res.status(400).json({ message: "Invalid user or role" });
+        }
+        // Mark user as verified
+        user.isVerified = true;
+        yield user.save();
+        res.json({ message: "Email verified successfully" });
+    }
+    catch (err) {
+        console.error("Error verifying email:", err);
+        res.status(400).json({ message: "Invalid or expired token" });
     }
 });

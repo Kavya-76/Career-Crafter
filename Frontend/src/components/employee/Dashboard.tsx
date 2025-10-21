@@ -2,6 +2,7 @@ const EmployeeDashboard = () => {
   return (
     <div>
         Employee Dashboard
+        <button>Logout</button>
     </div>
   )
 }

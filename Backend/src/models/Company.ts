@@ -6,6 +6,7 @@ export interface ICompany extends Document {
   password?: string;
   role: "employer";
   googleId?: string;
+  isVerified: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -17,6 +18,10 @@ const companySchema = new Schema<ICompany>(
     password: { type: String },
     role: { type: String, default: "employer" },
     googleId: { type: String },
+    isVerified: {
+      type: Boolean,
+      default: false
+    }
   },
   { timestamps: true }
 );

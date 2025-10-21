@@ -5,6 +5,10 @@ const companySchema = new Schema({
     password: { type: String },
     role: { type: String, default: "employer" },
     googleId: { type: String },
+    isVerified: {
+        type: Boolean,
+        default: false
+    }
 }, { timestamps: true });
 const Company = mongoose.model("Company", companySchema);
 export default Company;
