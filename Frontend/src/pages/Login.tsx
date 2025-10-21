@@ -82,8 +82,6 @@ const Login = () => {
       });
 
       login(response.data.token, response.data.role, response.data.user);
-      // localStorage.setItem("token", response.data.token);
-      // localStorage.setItem("role", response.data.role);
       if (response.data.role === "employer") {
         navigate("/employer/dashboard");
       } else {

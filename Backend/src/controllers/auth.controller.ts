@@ -5,6 +5,7 @@ import User from "../models/User.js";
 import Company from "../models/Company.js";
 import jwt from "jsonwebtoken";
 import { sendVerificationEmail } from "../utils/sendVerificationEmail.js";
+import { sendPasswordResetEmail } from "../utils/sendPasswordResetEmail.js";
 
 export const signup = async (req: Request, res: Response) => {
   try {
@@ -69,7 +70,9 @@ export const login = async (req: Request, res: Response) => {
     // Check if user is verified
     if (!existing.isVerified) {
       await sendVerificationEmail(existing); // resend verification email
-      return res.status(403).json({ message: "Email not verified. Verification email sent." });
+      return res
+        .status(403)
+        .json({ message: "Email not verified. Verification email sent." });
     }
 
     const token = generateToken(
@@ -92,8 +95,6 @@ export const login = async (req: Request, res: Response) => {
 export const verifyEmail = async (req: Request, res: Response) => {
   const token = req.query.token;
 
-  console.log("Verifying the email...");
-
   // Ensure token exists and is a string
   if (!token || typeof token !== "string") {
     return res.status(400).json({ message: "Token is required" });
@@ -106,9 +107,6 @@ export const verifyEmail = async (req: Request, res: Response) => {
       role: "employee" | "employer";
     };
 
-    // Determine which model to search
-    console.log(decoded.role);
-    
     let user;
     if (decoded.role === "employee") {
       user = await User.findById(decoded.userId);
@@ -127,6 +125,76 @@ export const verifyEmail = async (req: Request, res: Response) => {
     res.json({ message: "Email verified successfully" });
   } catch (err) {
     console.error("Error verifying email:", err);
+    res.status(400).json({ message: "Invalid or expired token" });
+  }
+};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: "Email is required" });
+  }
+
+  try {
+    let user: any = await User.findOne({ email });
+    let role = "employee";
+
+    if (!user) {
+      user = await Company.findOne({ email });
+      role = "employer";
+    }
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Send password reset email
+    const emailResponse = await sendPasswordResetEmail(user);
+
+    if (emailResponse.success) {
+      return res
+        .status(200)
+        .json({ message: "Password reset email sent successfully" });
+    } else {
+      return res.status(500).json({ message: "Failed to send email" });
+    }
+  } catch (error) {
+    console.error("Error in forgot password:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  const { token, newPassword } = req.body;
+
+  if (!token || !newPassword)
+    return res.status(400).json({ message: "Token and password are required" });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+      userId: string;
+      role: "employee" | "employer";
+    };
+
+    let user;
+    if (decoded.role === "employee") {
+      user = await User.findById(decoded.userId);
+    } else if (decoded.role === "employer") {
+      user = await Company.findById(decoded.userId);
+    }
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    res.status(200).json({ message: "Password reset successful" });
+  } catch (err) {
+    console.error("Password reset error:", err);
     res.status(400).json({ message: "Invalid or expired token" });
   }
 };

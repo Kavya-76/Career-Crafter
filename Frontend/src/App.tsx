@@ -15,6 +15,7 @@ import NotFound from "@/pages/NotFound";
 import EmployeeDashboard from "./components/employee/Dashboard";
 import EmployerDashboard from "./components/employer/Dashboard";
 import VerifyEmail from "@/pages/VerifyEmail";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -65,8 +66,9 @@ const App = () => {
                 <Route path="/choose-role" element={<PublicRoute><ChooseRole /></PublicRoute>} />
                 <Route path="/login/:role" element={<PublicRoute><Login /></PublicRoute>} />
                 <Route path="/register/:role" element={<PublicRoute><Register /></PublicRoute>} />
-                <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
                 <Route path="/verify-email" element={<PublicRoute><VerifyEmail /></PublicRoute>} />
+                <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+                <Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
 
                 {/* Protected Routes */}
                 <Route

@@ -13,6 +13,7 @@ import User from "../models/User.js";
 import Company from "../models/Company.js";
 import jwt from "jsonwebtoken";
 import { sendVerificationEmail } from "../utils/sendVerificationEmail.js";
+import { sendPasswordResetEmail } from "../utils/sendPasswordResetEmail.js";
 export const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { name, email, password, role } = req.body;
@@ -62,7 +63,9 @@ export const login = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         // Check if user is verified
         if (!existing.isVerified) {
             yield sendVerificationEmail(existing); // resend verification email
-            return res.status(403).json({ message: "Email not verified. Verification email sent." });
+            return res
+                .status(403)
+                .json({ message: "Email not verified. Verification email sent." });
         }
         const token = generateToken(existing._id.toString(), role);
         return res.status(200).json({
@@ -79,7 +82,6 @@ export const login = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 });
 export const verifyEmail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const token = req.query.token;
-    console.log("Verifying the email...");
     // Ensure token exists and is a string
     if (!token || typeof token !== "string") {
         return res.status(400).json({ message: "Token is required" });
@@ -87,8 +89,6 @@ export const verifyEmail = (req, res) => __awaiter(void 0, void 0, void 0, funct
     try {
         // Decode the JWT token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        // Determine which model to search
-        console.log(decoded.role);
         let user;
         if (decoded.role === "employee") {
             user = yield User.findById(decoded.userId);
@@ -106,6 +106,63 @@ export const verifyEmail = (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
     catch (err) {
         console.error("Error verifying email:", err);
+        res.status(400).json({ message: "Invalid or expired token" });
+    }
+});
+export const forgotPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { email } = req.body;
+    if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+    }
+    try {
+        let user = yield User.findOne({ email });
+        let role = "employee";
+        if (!user) {
+            user = yield Company.findOne({ email });
+            role = "employer";
+        }
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        // Send password reset email
+        const emailResponse = yield sendPasswordResetEmail(user);
+        if (emailResponse.success) {
+            return res
+                .status(200)
+                .json({ message: "Password reset email sent successfully" });
+        }
+        else {
+            return res.status(500).json({ message: "Failed to send email" });
+        }
+    }
+    catch (error) {
+        console.error("Error in forgot password:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+export const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword)
+        return res.status(400).json({ message: "Token and password are required" });
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        let user;
+        if (decoded.role === "employee") {
+            user = yield User.findById(decoded.userId);
+        }
+        else if (decoded.role === "employer") {
+            user = yield Company.findById(decoded.userId);
+        }
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        const hashedPassword = yield bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        yield user.save();
+        res.status(200).json({ message: "Password reset successful" });
+    }
+    catch (err) {
+        console.error("Password reset error:", err);
         res.status(400).json({ message: "Invalid or expired token" });
     }
 });
