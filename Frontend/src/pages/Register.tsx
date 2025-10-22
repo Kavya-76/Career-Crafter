@@ -1,18 +1,13 @@
-import { useState } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { FormInput } from "@/components/auth/FormInput";
-import { Briefcase, Mail } from "lucide-react";
-import { toast } from "sonner";
-import axios from "axios";
-const backendUrl = import.meta.env.VITE_BACKEND_URL;
+import { useState } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { FormInput } from '@/components/auth/FormInput';
+import { Briefcase, Mail } from 'lucide-react';
+import {toast} from "sonner"
+import axios from "axios"
+import { useHandleGoogleAuth } from '@/hooks/useHandleGoogleAuth';
+const backendUrl = import.meta.env.VITE_BACKEND_URL
 
 const Register = () => {
   const { role = "employee" } = useParams<{ role: "employee" | "employer" }>();
@@ -266,7 +261,7 @@ const Register = () => {
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={handleGoogleSignup}
+                  onClick={()=>useHandleGoogleAuth()}
                 >
                   <Mail className="mr-2 h-4 w-4" />
                   Sign up with Google

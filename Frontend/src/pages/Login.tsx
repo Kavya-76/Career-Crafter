@@ -13,12 +13,13 @@ import { Briefcase, Mail } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
 import { useAuth } from "@/contexts/AuthContext";
-const backendUrl = import.meta.env.VITE_BACKEND_URL
+import { useHandleGoogleAuth } from "@/hooks/useHandleGoogleAuth";
 
 const Login = () => {
   const { role = "employee" } = useParams<{ role: "employee" | "employer" }>();
   const navigate = useNavigate();
-  const {login} = useAuth();
+  const { login } = useAuth();
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const [formData, setFormData] = useState({
     email: "",
@@ -27,6 +28,7 @@ const Login = () => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const googleLogin = useHandleGoogleAuth();
 
   const isEmployer = role === "employer";
   const accentColor = isEmployer
@@ -95,13 +97,7 @@ const Login = () => {
       setIsLoading(false);
     }
   };
-
-  const handleGoogleLogin = () => {
-    toast.success("Google OAuth", {
-      description: "Google sign-in integration coming soon!",
-    });
-  };
-
+  
   return (
     <div className="min-h-screen flex">
       {/* Left side - Gradient background */}
@@ -223,7 +219,7 @@ const Login = () => {
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={handleGoogleLogin}
+                  onClick={() => googleLogin()} // ✅ wrap in arrow function
                 >
                   <Mail className="mr-2 h-4 w-4" />
                   Sign in with Google
