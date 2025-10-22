@@ -14,6 +14,7 @@ import Company from "../models/Company.js";
 import jwt from "jsonwebtoken";
 import { sendVerificationEmail } from "../utils/sendVerificationEmail.js";
 import { sendPasswordResetEmail } from "../utils/sendPasswordResetEmail.js";
+import axios from "axios";
 export const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { name, email, password, role } = req.body;
@@ -164,5 +165,56 @@ export const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, fun
     catch (err) {
         console.error("Password reset error:", err);
         res.status(400).json({ message: "Invalid or expired token" });
+    }
+});
+export const googleOAuth = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { accessToken, role } = req.body;
+        if (!accessToken || !role) {
+            return res.status(400).json({ message: "Access token and role required" });
+        }
+        // ✅ Get user info from Google
+        const { data } = yield axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
+            headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const { email, name, sub: googleId, picture } = data;
+        if (!email)
+            return res.status(400).json({ message: "No email found in Google token" });
+        // 🔹 Find or create user
+        let user;
+        if (role === "employer") {
+            user = yield Company.findOne({ email });
+            if (!user) {
+                user = yield Company.create({
+                    name,
+                    email,
+                    googleId,
+                    isVerified: true,
+                });
+            }
+        }
+        else {
+            user = yield User.findOne({ email });
+            if (!user) {
+                user = yield User.create({
+                    name,
+                    email,
+                    googleId,
+                    isVerified: true,
+                });
+            }
+        }
+        // 🔹 Generate JWT
+        const jwtToken = jwt.sign({ id: user._id, email: user.email, role }, process.env.JWT_SECRET, { expiresIn: "7d" });
+        res.status(200).json({
+            success: true,
+            message: "Google login successful",
+            token: jwtToken,
+            user,
+        });
+    }
+    catch (error) {
+        console.error("Google Auth Error:", error);
+        res.status(500).json({ message: "Google authentication failed" });
     }
 });
