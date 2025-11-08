@@ -6,7 +6,7 @@ import Company, { ICompany } from "../models/Company.js";
 import jwt from "jsonwebtoken";
 import { sendVerificationEmail } from "../utils/sendVerificationEmail.js";
 import { sendPasswordResetEmail } from "../utils/sendPasswordResetEmail.js";
-import axios from "axios"
+import axios from "axios";
 
 export const signup = async (req: Request, res: Response) => {
   try {
@@ -61,6 +61,10 @@ export const login = async (req: Request, res: Response) => {
 
     if (!existing) {
       return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    if (existing.password === null) {
+      return res.status(400).json({ message: "Reset your credentials" });
     }
 
     const isMatch = await bcrypt.compare(password, existing.password!);
@@ -204,17 +208,25 @@ export const googleOAuth = async (req: Request, res: Response) => {
   try {
     const { accessToken, role } = req.body;
     if (!accessToken || !role) {
-      return res.status(400).json({ message: "Access token and role required" });
+      return res
+        .status(400)
+        .json({ message: "Access token and role required" });
     }
 
     // ✅ Get user info from Google
-    const { data } = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
+    const { data } = await axios.get(
+      "https://www.googleapis.com/oauth2/v3/userinfo",
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
 
     const { email, name, sub: googleId, picture } = data;
 
-    if (!email) return res.status(400).json({ message: "No email found in Google token" });
+    if (!email)
+      return res
+        .status(400)
+        .json({ message: "No email found in Google token" });
 
     // 🔹 Find or create user
     let user;
@@ -227,6 +239,9 @@ export const googleOAuth = async (req: Request, res: Response) => {
           googleId,
           isVerified: true,
         });
+      } else if (!user.googleId) {
+        user.googleId = googleId;
+        await user.save();
       }
     } else {
       user = await User.findOne({ email });
@@ -235,8 +250,12 @@ export const googleOAuth = async (req: Request, res: Response) => {
           name,
           email,
           googleId,
+          password: null,
           isVerified: true,
         });
+      } else if (!user.googleId) {
+        user.googleId = googleId;
+        await user.save();
       }
     }
 

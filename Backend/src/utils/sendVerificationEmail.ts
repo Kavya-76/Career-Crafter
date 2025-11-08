@@ -9,15 +9,6 @@ const domain = process.env.FRONTEND_URL;
 const send_email = process.env.SEND_EMAIL;
 const email_pass = process.env.EMAIL_PASS;
 
-console.log("ENV CHECK:", {
-  FRONTEND_URL: process.env.FRONTEND_URL,
-  SEND_EMAIL: process.env.SEND_EMAIL,
-  EMAIL_PASS: process.env.EMAIL_PASS,
-  JWT_SECRET: process.env.JWT_SECRET,
-});
-
-
-
 export const sendVerificationEmail = async (user:IUser|ICompany) => {
     const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET!, {
         expiresIn: "1h",

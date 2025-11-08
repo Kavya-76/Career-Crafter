@@ -3,10 +3,10 @@ import mongoose, { Document, Schema } from "mongoose";
 export interface IUser extends Document {
   name: string;
   email: string;
-  password?: string;
+  password?: string | null;
   role: "employee";
   googleId?: string;
-  isVerified: Boolean;
+  isVerified: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }

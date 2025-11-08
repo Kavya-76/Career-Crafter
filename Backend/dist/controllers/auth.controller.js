@@ -57,6 +57,9 @@ export const login = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         if (!existing) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
+        if (existing.password === null) {
+            return res.status(400).json({ message: "Reset your credentials" });
+        }
         const isMatch = yield bcrypt.compare(password, existing.password);
         if (!isMatch) {
             return res.status(400).json({ message: "Invalid credentials" });
@@ -171,7 +174,9 @@ export const googleOAuth = (req, res) => __awaiter(void 0, void 0, void 0, funct
     try {
         const { accessToken, role } = req.body;
         if (!accessToken || !role) {
-            return res.status(400).json({ message: "Access token and role required" });
+            return res
+                .status(400)
+                .json({ message: "Access token and role required" });
         }
         // ✅ Get user info from Google
         const { data } = yield axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
@@ -179,7 +184,9 @@ export const googleOAuth = (req, res) => __awaiter(void 0, void 0, void 0, funct
         });
         const { email, name, sub: googleId, picture } = data;
         if (!email)
-            return res.status(400).json({ message: "No email found in Google token" });
+            return res
+                .status(400)
+                .json({ message: "No email found in Google token" });
         // 🔹 Find or create user
         let user;
         if (role === "employer") {
@@ -192,6 +199,10 @@ export const googleOAuth = (req, res) => __awaiter(void 0, void 0, void 0, funct
                     isVerified: true,
                 });
             }
+            else if (!user.googleId) {
+                user.googleId = googleId;
+                yield user.save();
+            }
         }
         else {
             user = yield User.findOne({ email });
@@ -200,8 +211,13 @@ export const googleOAuth = (req, res) => __awaiter(void 0, void 0, void 0, funct
                     name,
                     email,
                     googleId,
+                    password: null,
                     isVerified: true,
                 });
+            }
+            else if (!user.googleId) {
+                user.googleId = googleId;
+                yield user.save();
             }
         }
         // 🔹 Generate JWT
