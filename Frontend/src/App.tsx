@@ -12,10 +12,16 @@ import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import ForgotPassword from "@/pages/ForgotPassword";
 import NotFound from "@/pages/NotFound";
-import EmployeeDashboard from "./components/employee/Dashboard";
+// import EmployeeDashboard from "./components/employee/Dashboard";
 import EmployerDashboard from "./components/employer/Dashboard";
 import VerifyEmail from "@/pages/VerifyEmail";
 import ResetPassword from "./pages/ResetPassword";
+import EmployeeDashboard from "./pages/employee/Dashboard";
+import ProfilePage from "./pages/employee/Profile";
+import ApplicationsPage from "./pages/employee/Applications";
+import SavedJobsPage from "./pages/employee/SavedJobs";
+import ResumePage from "./pages/employee/Resume";
+import InsightsPage from "./pages/employee/Insights";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +77,8 @@ const App = () => {
                 <Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
 
                 {/* Protected Routes */}
+                
+                {/* Employee routes */}
                 <Route
                   path="/employee/dashboard"
                   element={
@@ -79,6 +87,54 @@ const App = () => {
                     </ProtectedRoute>
                   }
                 />
+
+                <Route
+                  path="/employee/profile"
+                  element={
+                    <ProtectedRoute allowedRole="employee">
+                      <ProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/employee/applications"
+                  element={
+                    <ProtectedRoute allowedRole="employee">
+                      <ApplicationsPage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/employee/saved"
+                  element={
+                    <ProtectedRoute allowedRole="employee">
+                      <SavedJobsPage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/employee/resume"
+                  element={
+                    <ProtectedRoute allowedRole="employee">
+                      <ResumePage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/employee/insights"
+                  element={
+                    <ProtectedRoute allowedRole="employee">
+                      <InsightsPage />
+                    </ProtectedRoute>
+                  }
+                />
+
+
+                {/* Employer routes */}
                 <Route
                   path="/employer/dashboard"
                   element={

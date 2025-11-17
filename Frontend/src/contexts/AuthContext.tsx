@@ -24,11 +24,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [role, setRole] = useState<"employee" | "employer" | null>(
     (localStorage.getItem("role") as "employee" | "employer") || null
   );
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+  const storedUser = localStorage.getItem("user");
+  return storedUser ? JSON.parse(storedUser) : null;
+});
+
 
   const login = (token: string, role: "employee" | "employer", user: User) => {
     localStorage.setItem("token", token);
     localStorage.setItem("role", role);
+    localStorage.setItem("user", JSON.stringify(user))
     setToken(token);
     setRole(role);
     setUser(user);
@@ -37,6 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
+    localStorage.removeItem("user");
     setToken(null);
     setRole(null);
     setUser(null);
