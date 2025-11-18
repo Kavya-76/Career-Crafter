@@ -1,13 +1,13 @@
 // src/controllers/userProfile.controller.ts
 import { Request, Response } from "express";
-import UserProfile from "../models/UserProfile";
+import UserProfile from "../models/UserProfile.js";
 
 export const getUserProfile = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
-
+    // console.log("User id: ",userId) 
     const profile = await UserProfile.findOne({ userId });
-
+    // console.log("profile found", profile);
     if (!profile) {
       return res.status(404).json({ message: "Profile not found" });
     }

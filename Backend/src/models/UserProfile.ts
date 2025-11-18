@@ -9,11 +9,12 @@ const experienceSchema = new mongoose.Schema({
 });
 
 const educationSchema = new mongoose.Schema({
-  institution: String,
+  school: String,
   degree: String,
   field: String,
-  startYear: Number,
-  endYear: Number,
+  startYear: Date,
+  endYear: Date,
+  description: String
 });
 
 const projectSchema = new mongoose.Schema({
@@ -26,7 +27,7 @@ const projectSchema = new mongoose.Schema({
 const achievementSchema = new mongoose.Schema({
   title: String,
   description: String,
-  year: Number,
+  date: Number,
 });
 
 const userProfileSchema = new mongoose.Schema(

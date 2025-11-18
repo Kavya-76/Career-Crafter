@@ -7,12 +7,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import UserProfile from "../models/UserProfile";
+import UserProfile from "../models/UserProfile.js";
 export const getUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
         const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        // console.log("User id: ",userId) 
         const profile = yield UserProfile.findOne({ userId });
+        // console.log("profile found", profile);
         if (!profile) {
             return res.status(404).json({ message: "Profile not found" });
         }

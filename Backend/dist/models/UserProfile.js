@@ -7,11 +7,12 @@ const experienceSchema = new mongoose.Schema({
     description: String,
 });
 const educationSchema = new mongoose.Schema({
-    institution: String,
+    school: String,
     degree: String,
     field: String,
-    startYear: Number,
-    endYear: Number,
+    startYear: Date,
+    endYear: Date,
+    description: String
 });
 const projectSchema = new mongoose.Schema({
     name: String,
@@ -22,7 +23,7 @@ const projectSchema = new mongoose.Schema({
 const achievementSchema = new mongoose.Schema({
     title: String,
     description: String,
-    year: Number,
+    date: Number,
 });
 const userProfileSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, unique: true },

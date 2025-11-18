@@ -3,6 +3,7 @@ import connectDB from "./config/db.js"
 import cors from "cors"
 import dotenv from "dotenv"
 import authRoutes from "./routes/auth.routes.js"
+import userProfileRoutes from "./routes/userProfile.routes.js"
 dotenv.config();
 
 const app = express()
@@ -13,6 +14,7 @@ app.use(cors());
 connectDB();
 
 app.use("/api/auth", authRoutes);
+app.use("/api/userProfile", userProfileRoutes);
 
 app.get("/", (req,res)=>{
     res.send("Server is running...")
